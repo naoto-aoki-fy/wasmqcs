@@ -1,0 +1,34 @@
+/* public/style.css */
+:root {
+  --bg: #0b0e11;
+  --card: #11161b;
+  --fg: #e7eef7;
+  --muted: #a9b7c6;
+  --accent: #7fd1ae;
+  --warn: #ffb86c;
+  --border: #1e2630;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--fg); font-family: system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", sans-serif; }
+header { padding: 20px; border-bottom: 1px solid var(--border); display:flex; align-items:center; gap: 16px; }
+h1 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: .5px; }
+.pill { background: #142026; color: var(--accent); padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+
+main { max-width: 960px; margin: 0 auto; padding: 20px; display: grid; gap: 16px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+h2 { margin-top: 0; font-size: 16px; }
+.row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+label { color: var(--muted); }
+input { background: #0b1217; color: var(--fg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; outline: none; }
+button { background: #17212a; color: var(--fg); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; cursor: pointer; transition: transform .05s ease, background .2s ease; font-weight: 600; }
+button:hover { background: #1b2731; transform: translateY(-1px); }
+button:active { transform: translateY(0); }
+.gates button { min-width: 68px; }
+.warn { color: var(--warn); }
+
+#probs { margin-top: 10px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 6px 8px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+th { text-align: left; color: var(--muted); }
+.idx { color: var(--muted); }

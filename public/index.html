@@ -1,0 +1,82 @@
+<!-- public/index.html -->
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WASM 量子状態ベクトルシミュレータ (C++/pthreads)</title>
+  <link rel="stylesheet" href="style.css" />
+  <script>
+    // Ensure the main runtime runs in a Worker so we can block & use pthreads comfortably.
+    // Also set the pthread pool size dynamically.
+    window.Module = {
+      // You can tweak this before loading sim.js
+      pthreadPoolSize: (navigator.hardwareConcurrency ? Math.max(2, Math.min(navigator.hardwareConcurrency, 8)) : 4),
+      onRuntimeInitialized() {
+        document.dispatchEvent(new Event('wasm-ready'));
+      },
+      // Make sure resource paths (wasm/worker) resolve next to sim.js
+      locateFile: (path) => path,
+    };
+  </script>
+</head>
+<body>
+  <header>
+    <h1>WASM 量子状態ベクトルシミュレータ</h1>
+    <div class="pill">C++ → WebAssembly / 共有メモリ並列（pthread）</div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>初期化</h2>
+      <div class="row">
+        <label>量子ビット数: <input id="nQubits" type="number" min="1" max="28" value="18" /></label>
+        <label>スレッド数: <input id="nThreads" type="number" min="1" max="16" value="4" /></label>
+        <button id="btnInit">初期化</button>
+        <button id="btnReset">|0…0⟩ にリセット</button>
+      </div>
+      <p id="xo-warning" class="warn" hidden>
+        このページは <code>crossOriginIsolated</code> ではありません。<br>
+        共有メモリ（SharedArrayBuffer）と pthreads を使うには、サーバで
+        <code>Cross-Origin-Opener-Policy: same-origin</code> と
+        <code>Cross-Origin-Embedder-Policy: require-corp</code> ヘッダが必要です。
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>ゲート適用</h2>
+      <div class="row">
+        <label>ターゲット q: <input id="targetQ" type="number" min="0" value="0" /></label>
+        <label>制御 q (CNOT用): <input id="controlQ" type="number" min="0" value="1" /></label>
+      </div>
+      <div class="row gates">
+        <button data-g="H">H</button>
+        <button data-g="X">X</button>
+        <button data-g="RX">RX(θ)</button>
+        <button data-g="RY">RY(θ)</button>
+        <button data-g="RZ">RZ(θ)</button>
+        <input id="theta" type="number" step="0.01" value="1.57079632679" />
+        <button data-g="CNOT">CNOT</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>確率のプレビュー</h2>
+      <div class="row">
+        <label>表示件数（先頭から） <input id="viewCount" type="number" min="2" max="65536" value="4096" /></label>
+        <button id="btnRefresh">更新</button>
+        <button id="btnOneShot">1ショット測定</button>
+        <span id="shotOut"></span>
+      </div>
+      <div id="probs"></div>
+    </section>
+  </main>
+
+  <footer>
+    <small>© MIT License / Demo</small>
+  </footer>
+
+  <script src="sim.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
