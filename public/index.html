@@ -7,17 +7,21 @@
   <title>WASM 量子状態ベクトルシミュレータ (C++/pthreads)</title>
   <link rel="stylesheet" href="style.css" />
   <script>
+    console.log('[index.html] main script start');
+    window.addEventListener('error', (e) => console.error('[window error]', e));
     // Ensure the main runtime runs in a Worker so we can block & use pthreads comfortably.
     // Also set the pthread pool size dynamically.
     window.Module = {
       // You can tweak this before loading sim.js
       pthreadPoolSize: (navigator.hardwareConcurrency ? Math.max(2, Math.min(navigator.hardwareConcurrency, 8)) : 4),
       onRuntimeInitialized() {
+        console.log('[index.html] wasm runtime initialized');
         document.dispatchEvent(new Event('wasm-ready'));
       },
       // Make sure resource paths (wasm/worker) resolve next to sim.js
       locateFile: (path) => path,
     };
+    console.log('[index.html] Module config', window.Module);
   </script>
 </head>
 <body>
@@ -78,10 +82,14 @@
 
   <script type="module">
     import createModule from './sim.js';
+    console.log('[index.html] creating module');
     // Instantiate the modularized WASM and expose it globally
     window.Module = await createModule(window.Module);
+    console.log('[index.html] Module created', window.Module);
+    console.log('[index.html] importing app.js');
     // Load the application logic once the runtime is ready
     await import('./app.js');
+    console.log('[index.html] app.js imported');
   </script>
 </body>
 </html>

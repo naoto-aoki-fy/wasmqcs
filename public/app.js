@@ -3,6 +3,8 @@
 
 import { init, reset, numQubits, dim, applyGate, getProbsRange, sample } from './qs.js';
 
+console.log('[app.js] script loaded');
+
 function updateProbTable() {
   const viewCount = Math.min(Number(document.getElementById('viewCount').value || 4096), dim());
   console.log('[updateProbTable] viewCount', viewCount);
@@ -32,31 +34,44 @@ function applyGateFromUI(kind) {
   const t = Number(document.getElementById('targetQ').value || 0);
   const c = Number(document.getElementById('controlQ').value || 1);
   const th = Number(document.getElementById('theta').value || 0);
+  console.log('[applyGateFromUI]', { kind, t, c, th });
   applyGate(kind, t, c, th);
   updateProbTable();
 }
 
 function bindUI() {
+  console.log('[bindUI] attaching event listeners');
   if (!crossOriginIsolated) {
     document.getElementById('xo-warning').hidden = false;
   }
   document.getElementById('btnInit').addEventListener('click', () => {
     const n = Number(document.getElementById('nQubits').value || 18);
     const thr = Number(document.getElementById('nThreads').value || Module.pthreadPoolSize || 4);
+    console.log('[btnInit.click]', { n, thr });
     init(n, thr);
     document.getElementById('targetQ').max = String(n-1);
     document.getElementById('controlQ').max = String(n-1);
     updateProbTable();
   });
   document.getElementById('btnReset').addEventListener('click', () => {
+    console.log('[btnReset.click]');
     reset();
     updateProbTable();
   });
   document.querySelectorAll('.gates button').forEach(btn => {
-    btn.addEventListener('click', () => applyGateFromUI(btn.dataset.g));
+    btn.addEventListener('click', () => {
+      console.log('[gate.click]', btn.dataset.g);
+      applyGateFromUI(btn.dataset.g);
+    });
   });
-  document.getElementById('btnRefresh').addEventListener('click', updateProbTable);
-  document.getElementById('btnOneShot').addEventListener('click', oneShot);
+  document.getElementById('btnRefresh').addEventListener('click', () => {
+    console.log('[btnRefresh.click]');
+    updateProbTable();
+  });
+  document.getElementById('btnOneShot').addEventListener('click', () => {
+    console.log('[btnOneShot.click]');
+    oneShot();
+  });
 }
 
 document.addEventListener('wasm-ready', () => {
