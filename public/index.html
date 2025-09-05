@@ -76,7 +76,12 @@
     <small>© MIT License / Demo</small>
   </footer>
 
-  <script src="sim.js"></script>
-  <script type="module" src="app.js"></script>
+  <script type="module">
+    import createModule from './sim.js';
+    // Instantiate the modularized WASM and expose it globally
+    window.Module = await createModule(window.Module);
+    // Load the application logic once the runtime is ready
+    await import('./app.js');
+  </script>
 </body>
 </html>
