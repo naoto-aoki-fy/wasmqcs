@@ -74,8 +74,14 @@ function bindUI() {
   });
 }
 
-document.addEventListener('wasm-ready', () => {
+function setup() {
   console.log('[wasm-ready]');
   // prepare cwraps if you prefer direct function pointers (ccall used above for brevity)
   bindUI();
-});
+}
+
+if (Module.runtimeInitialized) {
+  setup();
+} else {
+  document.addEventListener('wasm-ready', setup);
+}

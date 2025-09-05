@@ -16,6 +16,7 @@
       pthreadPoolSize: (navigator.hardwareConcurrency ? Math.max(2, Math.min(navigator.hardwareConcurrency, 8)) : 4),
       onRuntimeInitialized() {
         console.log('[index.html] wasm runtime initialized');
+        Module.runtimeInitialized = true;
         document.dispatchEvent(new Event('wasm-ready'));
       },
       // Make sure resource paths (wasm/worker) resolve next to sim.js
