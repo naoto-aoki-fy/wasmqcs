@@ -12,6 +12,11 @@ export function reset() {
   Module.ccall('qs_reset', null, [], []);
 }
 
+export function free() {
+  console.log('[free]');
+  Module.ccall('qs_free', null, [], []);
+}
+
 export function numQubits() {
   const n = Module.ccall('qs_num_qubits', 'number', [], []);
   console.log('[numQubits]', n);

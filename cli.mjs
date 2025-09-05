@@ -2,18 +2,18 @@
 // Simple Node.js entry point to run the WASM simulator from the command line.
 // Usage: node cli.mjs [n_qubits] [n_threads]
 
-import { init, reset, numQubits, dim, applyGate, getProbsRange, sample } from './public/qs.js';
+import { init, reset, numQubits, dim, applyGate, getProbsRange, sample, free } from './public/qs.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Prepare Module configuration for Emscripten before loading the runtime.
-globalThis.Module = {
-  locateFile: (path) => new URL('./public/' + path, import.meta.url).pathname,
-  onRuntimeInitialized() {
-    console.log('[runtime initialized]');
-    run();
-  }
-};
-
-await import('./public/sim.js');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const createModule = (await import('./public/sim.js')).default;
+const Module = await createModule({
+  locateFile: (p) => path.join(__dirname, 'public', p),
+});
+globalThis.Module = Module;
+console.log('[runtime initialized]');
+run();
 
 function run() {
   const n = Number(process.argv[2] || 2);
@@ -26,4 +26,5 @@ function run() {
   console.log('after H', Array.from(getProbsRange(0, showCount)));
   console.log('sample', sample());
   reset();
+  free();
 }
