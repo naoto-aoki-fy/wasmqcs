@@ -27,7 +27,7 @@ function oneShot() {
   const n = numQubits();
   const bits = idx.toString(2).padStart(n, '0');
   console.log('[oneShot] idx', idx);
-  document.getElementById('shotOut').textContent = `→ 測定結果: |${bits}⟩  (index ${idx})`;
+  document.getElementById('shotOut').textContent = `→ Measurement result: |${bits}⟩ (index ${idx})`;
 }
 
 function applyGateFromUI(kind) {

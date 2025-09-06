@@ -1,10 +1,10 @@
 <!-- public/index.html -->
 <!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>WASM 量子状態ベクトルシミュレータ (C++/pthreads)</title>
+  <title>WASM Quantum State Vector Simulator (C++/pthreads)</title>
   <link rel="stylesheet" href="style.css" />
   <script>
     console.log('[index.html] main script start');
@@ -27,32 +27,32 @@
 </head>
 <body>
   <header>
-    <h1>WASM 量子状態ベクトルシミュレータ</h1>
-    <div class="pill">C++ → WebAssembly / 共有メモリ並列（pthread）</div>
+    <h1>WASM Quantum State Vector Simulator</h1>
+    <div class="pill">C++ → WebAssembly / Shared-memory parallel (pthread)</div>
   </header>
 
   <main>
     <section class="card">
-      <h2>初期化</h2>
+      <h2>Initialization</h2>
       <div class="row">
-        <label>量子ビット数: <input id="nQubits" type="number" min="1" max="28" value="18" /></label>
-        <label>スレッド数: <input id="nThreads" type="number" min="1" max="16" value="4" /></label>
-        <button id="btnInit">初期化</button>
-        <button id="btnReset">|0…0⟩ にリセット</button>
+        <label>Number of qubits: <input id="nQubits" type="number" min="1" max="28" value="18" /></label>
+        <label>Number of threads: <input id="nThreads" type="number" min="1" max="16" value="4" /></label>
+        <button id="btnInit">Initialize</button>
+        <button id="btnReset">Reset to |0…0⟩</button>
       </div>
       <p id="xo-warning" class="warn" hidden>
-        このページは <code>crossOriginIsolated</code> ではありません。<br>
-        共有メモリ（SharedArrayBuffer）と pthreads を使うには、サーバで
-        <code>Cross-Origin-Opener-Policy: same-origin</code> と
-        <code>Cross-Origin-Embedder-Policy: require-corp</code> ヘッダが必要です。
+        This page is not <code>crossOriginIsolated</code>.<br>
+        To use SharedArrayBuffer and pthreads, the server must send
+        <code>Cross-Origin-Opener-Policy: same-origin</code> and
+        <code>Cross-Origin-Embedder-Policy: require-corp</code> headers.
       </p>
     </section>
 
     <section class="card">
-      <h2>ゲート適用</h2>
+      <h2>Apply Gate</h2>
       <div class="row">
-        <label>ターゲット q: <input id="targetQ" type="number" min="0" value="0" /></label>
-        <label>制御 q (CNOT用): <input id="controlQ" type="number" min="0" value="1" /></label>
+        <label>Target q: <input id="targetQ" type="number" min="0" value="0" /></label>
+        <label>Control q (for CNOT): <input id="controlQ" type="number" min="0" value="1" /></label>
       </div>
       <div class="row gates">
         <button data-g="H">H</button>
@@ -66,11 +66,11 @@
     </section>
 
     <section class="card">
-      <h2>確率のプレビュー</h2>
+      <h2>Probability Preview</h2>
       <div class="row">
-        <label>表示件数（先頭から） <input id="viewCount" type="number" min="2" max="65536" value="4096" /></label>
-        <button id="btnRefresh">更新</button>
-        <button id="btnOneShot">1ショット測定</button>
+        <label>Display count (from start) <input id="viewCount" type="number" min="2" max="65536" value="4096" /></label>
+        <button id="btnRefresh">Refresh</button>
+        <button id="btnOneShot">One-shot measurement</button>
         <span id="shotOut"></span>
       </div>
       <div id="probs"></div>

@@ -1,26 +1,26 @@
 # Browser Quantum State-Vector Simulator (C++ → WebAssembly, pthreads)
 
-**特徴**
+**Features**
 
-- C++ で実装した状態ベクトル法の量子シミュレータ
-- Emscripten で WebAssembly 化、`-sUSE_PTHREADS=1` により Web Workers 上で**共有メモリ並列**実行
-- 単一ビットゲート H / X / RX / RY / RZ、2ビットゲート CNOT を実装
-- 確率プレビューと単発測定（サンプリング）
-- スレッドプール（簡易ディスパッチャ）により各ゲート適用を並列化
-- `-sPROXY_TO_PTHREAD` 採用：メインロジックは Worker 内で実行され、待機や条件変数も使用可能
+- State-vector quantum simulator implemented in C++
+- Compiled to WebAssembly via Emscripten. `-sUSE_PTHREADS=1` enables **shared-memory parallel** execution on Web Workers
+- Implements single-qubit gates H / X / RX / RY / RZ and two-qubit gate CNOT
+- Probability preview and single-shot measurement (sampling)
+- Parallelizes gate application using a thread pool (lightweight dispatcher)
+- Uses `-sPROXY_TO_PTHREAD`: the main logic runs inside a Worker, allowing waits and condition variables
 
-> ⚠️ 重要: pthreads/SharedArrayBuffer をブラウザで使うには `crossOriginIsolated` が必須です。\
-> サーバ側で以下ヘッダを付与してください：\
+> ⚠️ Important: `crossOriginIsolated` is required to use pthreads/SharedArrayBuffer in browsers.\
+> Make sure the server sends:\
 > `Cross-Origin-Opener-Policy: same-origin`\
 > `Cross-Origin-Embedder-Policy: require-corp`
 
 ---
 
-## 動かし方
+## How to Run
 
-### 1) 依存関係
+### 1) Dependencies
 
-- **Emscripten**（最新版推奨）をインストールし、有効化します。例：
+- Install and activate **Emscripten** (latest recommended). Example:
 
 ```bash
 git clone https://github.com/emscripten-core/emsdk && cd emsdk
@@ -29,56 +29,56 @@ git clone https://github.com/emscripten-core/emsdk && cd emsdk
 source ./emsdk_env.sh
 ```
 
-- **Node.js**（v18+ 推奨）
+- **Node.js** (v18+ recommended)
 
-### 2) ビルド
+### 2) Build
 
 ```bash
 ./build.sh
 ```
 
-出力: `public/sim.js`, `public/sim.wasm`, `public/sim.worker.js`
+Outputs: `public/sim.js`, `public/sim.wasm`, `public/sim.worker.js`
 
-### 3) サーブ（ヘッダ付き）
+### 3) Serve (with headers)
 
-本リポジトリにはヘッダ設定済みの簡易サーバ `server.mjs` を同梱しています。
+This repository bundles a simple server `server.mjs` with the required headers configured.
 
 ```bash
 npm i express
 node server.mjs
 ```
 
-ブラウザで以下へアクセス：
+Access in your browser:
 
 ```
 http://localhost:8080
 ```
 
-初回読み込み時に UI の上部に `crossOriginIsolated` 警告が出る場合は、HTTP レイヤのヘッダ設定を見直してください。
+If a `crossOriginIsolated` warning appears at the top of the UI on first load, review your HTTP headers.
 
-### 4) Node.js コマンドライン実行
+### 4) Node.js Command-Line Execution
 
-ブラウザだけでなく、同じ WASM モジュールを Node.js から呼び出すこともできます。
+The same WASM module can be invoked from Node.js as well as the browser.
 
 ```
-node cli.mjs [量子ビット数] [スレッド数]
+node cli.mjs [num_qubits] [num_threads]
 ```
 
-初回実行時に `sim.wasm` が存在しない場合は `./build.sh` でビルドしてください。
+If `sim.wasm` is missing on the first run, build it with `./build.sh`.
 
 ---
 
-## 設計メモ
+## Design Notes
 
-- **メモリ**: `complex<float>` を使用。状態ベクトルとスクラッチの二重バッファで**レース回避**。メモリ消費はおよそ `2 * 2^n * 8 bytes`（実部/虚部で計 16 バイト/振幅 × 2 バッファ = 32 バイト/基底状態）。
-  - 例) 20量子ビット → 約 32 MB 程度。
-- **並列化**: ターゲットビットの挿入写像（`insert_zero_bit`）により「振幅ペア」を連続インデックスに落とし込み、チャンク分割で各スレッドへ分配。
-- **ブロッキング**: `-sPROXY_TO_PTHREAD` によりメインスレッドは Worker 側で動作し、条件変数や `join` 等のブロッキングが可能。
-- **CNOT**: 置換（Permutation）として実装。`dst = (i & cmask) ? (i ^ tmask) : i` をスクラッチに書き出すため、データ競合なし。
+- **Memory**: uses `complex<float>`. A dual buffer of state and scratch avoids data races. Memory consumption is roughly `2 * 2^n * 8 bytes` (16 bytes per amplitude for real/imag, ×2 buffers = 32 bytes per basis state).
+  - Example: 20 qubits → about 32 MB.
+- **Parallelization**: the target-bit insertion mapping (`insert_zero_bit`) makes amplitude pairs contiguous and distributes chunks to threads.
+- **Blocking**: with `-sPROXY_TO_PTHREAD`, the main thread runs inside a Worker so blocking operations like condition variables and `join` are possible.
+- **CNOT**: implemented as a permutation. Writing `dst = (i & cmask) ? (i ^ tmask) : i` to the scratch buffer avoids data races.
 
 ---
 
-## 公開 API（JS から呼出）
+## Public API (callable from JS)
 
 ```c
 void   qs_init(uint32_t n_qubits, int n_threads);
@@ -98,23 +98,23 @@ void   qs_get_probs_range(uint32_t offset, uint32_t count, float* out_probs);
 uint32_t qs_sample(void);
 ```
 
-UI 側では `Module.ccall` / `Module.cwrap` で呼び出しています。必要に応じて独自のカスタムゲート（2×2 の一般複素行列）を追加してください（`apply_matrix_2x2` を利用）。
+The UI calls these via `Module.ccall` / `Module.cwrap`. Add custom gates (arbitrary 2×2 complex matrices) as needed using `apply_matrix_2x2`.
 
 ---
 
-## よくある質問
+## FAQ
 
-- **Q: 量子ビット数を増やすと落ちる/固まる？**  
-  A: メモリ逼迫です。`ALLOW_MEMORY_GROWTH=1` ですが、ブラウザと OS の制約を超えると失敗します。20～22量子ビットくらいが実用範囲です（マシン次第）。
+- **Q: It crashes or freezes when increasing qubits?**
+  A: Memory pressure. `ALLOW_MEMORY_GROWTH=1` is enabled, but exceeding browser/OS limits causes failure. Around 20–22 qubits is practical (depending on your machine).
 
-- **Q: スレッド数はどう決める？**  
-  A: 目安として `navigator.hardwareConcurrency` を上限 8 くらいで使っています。重い回路では増やし、軽い回路では減らしてください。
+- **Q: How should I choose the number of threads?**
+  A: As a guideline, use up to `navigator.hardwareConcurrency` capped at about 8. Increase for heavy circuits and decrease for light ones.
 
-- **Q: 他のゲート（S, T, SWAP, 任意 2 量子ビット行列など）は？**  
-  A: 同様のパターンで追加可能です。アルゴリズムは「読み取りを `state` から、書き込みを `scratch` へ」に徹すれば安全に並列化できます。
+- **Q: What about other gates (S, T, SWAP, arbitrary 2-qubit matrices, etc.)?**
+  A: They can be added similarly. Follow the pattern "read from `state`, write to `scratch`" for safe parallelization.
 
 ---
 
-## ライセンス
+## License
 
 MIT
